@@ -25,8 +25,35 @@ let persons = [
   },
 ];
 
-// log all requests
-app.use(morgan("tiny"));
+// define custom morgan token
+morgan.token("requestBody", function (req) {
+  // in production environment, avoid logging GDPR-sensitive data
+  return JSON.stringify(req.body);
+});
+
+// custom morgan format function
+const customMorganFormat = (tokens, req, res) => {
+  // get the HTTP request method
+  const method = tokens.method(req, res);
+
+  // recreate the predefined "tiny" format according to the docs
+  const tinyFormat = [
+    method,
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, "content-length"),
+    "-",
+    tokens["response-time"](req, res),
+    "ms",
+  ].join(" ");
+
+  // for POST requests only, log the request body as well
+  return method === "POST"
+    ? `${tinyFormat} ${tokens.requestBody(req, res)}`
+    : tinyFormat;
+};
+
+app.use(morgan(customMorganFormat));
 
 // automatically parse JSON data in the request body
 app.use(express.json());
