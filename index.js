@@ -1,4 +1,5 @@
 const express = require("express");
+const morgan = require("morgan");
 const app = express();
 
 let persons = [
@@ -23,6 +24,9 @@ let persons = [
     number: "39-23-6423122",
   },
 ];
+
+// log all requests
+app.use(morgan("tiny"));
 
 // automatically parse JSON data in the request body
 app.use(express.json());
