@@ -2,9 +2,6 @@ const express = require("express");
 const app = express();
 require("dotenv").config();
 const Person = require("./models/person");
-const morgan = require("morgan");
-
-let persons = [];
 
 // serve static files from the server
 app.use(express.static("dist"));
@@ -16,6 +13,7 @@ app.use(cors());
 // automatically parse JSON data in the request body
 app.use(express.json());
 
+const morgan = require("morgan");
 // define custom morgan token
 morgan.token("requestBody", function (req) {
   // in production environment, avoid logging GDPR-sensitive data
@@ -46,6 +44,8 @@ const customMorganFormat = (tokens, req, res) => {
 
 app.use(morgan(customMorganFormat));
 
+let persons = []; // TODO: remove after you replaced everything with DB operations
+
 app.get("/api/persons", (_request, response) => {
   Person.find({}).then((persons) => {
     response.json(persons);
@@ -67,14 +67,14 @@ app.get("/api/persons/:id", (request, response) => {
 });
 
 app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = persons.find((person) => person.id === id);
-  if (person) {
-    persons = persons.filter((person) => person.id !== id);
-    response.status(204).end();
-  } else {
-    response.status(404).end();
-  }
+  Person.findByIdAndDelete(request.params.id)
+    .then(() => {
+      response.status(204).end();
+    })
+    .catch((error) => {
+      console.log(error);
+      response.status(500).end();
+    });
 });
 
 app.post("/api/persons", (request, response) => {
@@ -96,6 +96,7 @@ app.post("/api/persons", (request, response) => {
   });
 });
 
+// unknown endpoint handler (must be defined after all routes are registered)
 const unknownEndpoint = (_request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
 };
