@@ -1,0 +1,6 @@
+GET http://localhost:3001/api/persons/41224d776a326fb40f000001
+
+###
+
+# pay attention to the format of the valid MongoDB ObjectId
+GET http://localhost:3001/api/persons/41224d776a326fb40f000001
