@@ -60,21 +60,24 @@ app.get("/info", (_request, response) => {
   response.send(`<p>Phonebook has info for ${amount}</p><p>${currTime}</p>`);
 });
 
-app.get("/api/persons/:id", (request, response) => {
-  Person.findById(request.params.id).then((person) => {
-    response.json(person);
-  });
+app.get("/api/persons/:id", (request, response, next) => {
+  Person.findById(request.params.id)
+    .then((person) => {
+      if (person) {
+        response.json(person);
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
 });
 
-app.delete("/api/persons/:id", (request, response) => {
+app.delete("/api/persons/:id", (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
     .then(() => {
       response.status(204).end();
     })
-    .catch((error) => {
-      console.log(error);
-      response.status(500).end();
-    });
+    .catch((error) => next(error));
 });
 
 app.post("/api/persons", (request, response) => {
@@ -96,11 +99,24 @@ app.post("/api/persons", (request, response) => {
   });
 });
 
-// unknown endpoint handler (must be defined after all routes are registered)
+// unknown endpoint handler (must be used after all routes are registered)
 const unknownEndpoint = (_request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
 };
 app.use(unknownEndpoint);
+
+// error handler middleware (must be the last middleware used, and
+// after all routes are registered)
+const errorHandler = (error, _request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  }
+
+  next(error);
+};
+app.use(errorHandler);
 
 // handle ports when not on localhost (3001) as well
 const PORT = process.env.PORT || 3001;
