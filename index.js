@@ -53,11 +53,13 @@ app.get("/api/persons", (_request, response) => {
 });
 
 app.get("/info", (_request, response) => {
-  const currTime = new Date();
-  const amount = `${persons.length} ${
-    persons.length === 1 ? "person" : "people"
-  }`;
-  response.send(`<p>Phonebook has info for ${amount}</p><p>${currTime}</p>`);
+  Person.find({}).then((persons) => {
+    const currTime = new Date();
+    const amount = `${persons.length} ${
+      persons.length === 1 ? "person" : "people"
+    }`;
+    response.send(`<p>Phonebook has info for ${amount}</p><p>${currTime}</p>`);
+  });
 });
 
 app.get("/api/persons/:id", (request, response, next) => {
