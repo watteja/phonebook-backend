@@ -1,6 +1,13 @@
+/**
+ * This is just a DB helper module.
+ * It's not necessary for standard app operation.
+ * It's pretty useful for testing things at the database level though.
+ * Run it with, for example: node mongo.js yourDbPassword
+ */
+
 const mongoose = require("mongoose");
 
-if (process.argv.length !== 3 && process.argv.length !== 5) {
+if (![3, 5].includes(process.argv.length)) {
   console.log("incorrect number of arguments");
   process.exit(1);
 }
@@ -19,19 +26,56 @@ const personSchema = new mongoose.Schema({
     minLength: 3,
     required: true,
   },
-  number: String,
+  number: {
+    type: String,
+    minLength: 8,
+    validate: {
+      validator: function (v) {
+        // valid phone number format:
+        // - min length: 8
+        // - two or three digits, hyphen, then rest digits
+        return /^\d{2,3}-\d{5,}$/.test(v);
+      },
+      message: (props) => `${props.value} is not a valid phone number!`,
+    },
+    required: [true, "User phone number required"],
+  },
 });
 
 // define the model for a phonebook entry
 const Person = mongoose.model("Person", personSchema);
 
 if (process.argv.length === 3) {
-  // print all phonebook entries from the database
-  Person.find({}).then((result) => {
-    console.log("phonebook:");
-    result.forEach((person) => {
-      console.log(`${person.name} ${person.number}`);
-    });
+  // // print all phonebook entries from the database
+  // Person.find({}).then((result) => {
+  //   console.log("phonebook:");
+  //   result.forEach((person) => {
+  //     console.log(`${person.name} ${person.number}`);
+  //   });
+  //   mongoose.connection.close();
+  // });
+
+  // init db with (valid) dummy data
+  const dummyData = [
+    {
+      name: "Arto Hellas",
+      number: "040-123456",
+    },
+    {
+      name: "Ada Lovelace",
+      number: "39-5323523",
+    },
+    {
+      name: "Dan Abramov",
+      number: "12-234345",
+    },
+    {
+      name: "Mary Poppendieck",
+      number: "39-236423122",
+    },
+  ];
+  Person.insertMany(dummyData).then(() => {
+    console.log("inserted dummy data");
     mongoose.connection.close();
   });
 } else {
