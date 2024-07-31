@@ -2,4 +2,8 @@ The backend part of the _Phonebook_ application, created through exercises for F
 
 The application lives at https://matts-phonebook.fly.dev/
 
-**NB**:The directory structure is slightly different from the example _Notes_ project.
+**Please note**
+
+- The directory structure is slightly different from the example _Notes_ project.
+
+- The ESlint configuration for the rules used in the example _Notes_ project is also slightly different, since I'm used to double quotes and semicolons.
